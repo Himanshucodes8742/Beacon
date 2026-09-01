@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAIL Freight Smart Charter AI — Intelligent Maritime Logistics</title>
+    <meta name="description" content="AI-powered freight forecasting and charter optimization for SAIL's maritime logistics operations">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════
+     TOAST CONTAINER
+     ════════════════════════════════════════════ -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN 1: LOGIN
+     ════════════════════════════════════════════ -->
+<div class="login-screen" id="loginScreen">
+    <!-- Hero Side -->
+    <div class="login-hero">
+        <div class="login-hero-content">
+            <div class="login-logo">🚢</div>
+            <h1>SAIL Freight<br><span>Smart Charter AI</span></h1>
+            <p>Intelligent Forecasting for Optimized Maritime Logistics.<br>Powered by XGBoost ML & Real-Time Market Analytics.</p>
+            <div class="login-stats">
+                <div class="login-stat">
+                    <div class="login-stat-value">₹340Cr+</div>
+                    <div class="login-stat-label">Annual Freight</div>
+                </div>
+                <div class="login-stat">
+                    <div class="login-stat-value">4</div>
+                    <div class="login-stat-label">Trade Routes</div>
+                </div>
+                <div class="login-stat">
+                    <div class="login-stat-value">92%</div>
+                    <div class="login-stat-label">Forecast Accuracy</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Form Side -->
+    <div class="login-form-side">
+        <div class="login-form-container">
+            <div class="login-form-header">
+                <h2>Welcome Back</h2>
+                <p>Sign in to access the command center</p>
+            </div>
+
+            <div class="login-error" id="loginError">
+                <span class="material-symbols-outlined" style="font-size:18px">error</span>
+                <span id="loginErrorText">Invalid credentials</span>
+            </div>
+
+            <form id="loginForm" onsubmit="return handleLogin(event)">
+                <div class="form-group">
+                    <label>SAIL Employee ID</label>
+                    <div class="form-input-wrapper">
+                        <span class="material-symbols-outlined input-icon">badge</span>
+                        <input type="text" class="form-input" id="employeeId" placeholder="e.g. SAIL001" required autocomplete="username">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Password</label>
+                    <div class="form-input-wrapper">
+                        <span class="material-symbols-outlined input-icon">lock</span>
+                        <input type="password" class="form-input" id="password" placeholder="Enter your password" required autocomplete="current-password">
+                        <button type="button" class="password-toggle" onclick="togglePassword()">
+                            <span class="material-symbols-outlined" id="pwdToggleIcon">visibility_off</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <label class="checkbox-group">
+                        <input type="checkbox" id="rememberMe"> Remember me
+                    </label>
+                    <a href="#" class="forgot-link">Forgot Password?</a>
+                </div>
+
+                <button type="submit" class="btn-login" id="loginBtn">
+                    <span id="loginBtnText">Secure Login</span>
+                </button>
+            </form>
+
+            <div class="login-footer">
+                <p>🔒 Authorized Access Only<br>
+                SAIL — Information Technology Department<br>
+                Ministry of Steel, Government of India</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     APP LAYOUT (Post-Login)
+     ════════════════════════════════════════════ -->
+<div class="app-layout" id="appLayout">
+
+    <!-- SIDEBAR NAV -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <div class="sidebar-brand-icon">🚢</div>
+            <div class="sidebar-brand-text">
+                <h3>Smart Charter AI</h3>
+                <p>SAIL Logistics</p>
+            </div>
+        </div>
+
+        <div class="sidebar-nav">
+            <div class="sidebar-nav-label">Main</div>
+            <button class="nav-item active" data-page="dashboard" onclick="navigateTo('dashboard')">
+                <span class="material-symbols-outlined nav-icon">dashboard</span>
+                <span>Dashboard</span>
+            </button>
+            <button class="nav-item" data-page="forecast" onclick="navigateTo('forecast')">
+                <span class="material-symbols-outlined nav-icon">trending_up</span>
+                <span>Freight Forecast</span>
+            </button>
+            <button class="nav-item" data-page="optimizer" onclick="navigateTo('optimizer')">
+                <span class="material-symbols-outlined nav-icon">tune</span>
+                <span>Vessel Optimizer</span>
+            </button>
+            <button class="nav-item" data-page="charters" onclick="navigateTo('charters')">
+                <span class="material-symbols-outlined nav-icon">directions_boat</span>
+                <span>Active Charters</span>
+                <span class="nav-badge">5</span>
+            </button>
+
+            <div class="sidebar-nav-label">Analytics</div>
+            <button class="nav-item" data-page="insights" onclick="navigateTo('insights')">
+                <span class="material-symbols-outlined nav-icon">query_stats</span>
+                <span>Market Insights</span>
+            </button>
+            <button class="nav-item" data-page="reports" onclick="navigateTo('reports')">
+                <span class="material-symbols-outlined nav-icon">assessment</span>
+                <span>Reports</span>
+            </button>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-user" onclick="handleLogout()">
+                <div class="sidebar-user-avatar" id="userAvatar">LM</div>
+                <div class="sidebar-user-info">
+                    <h4 id="userName">Logistics Manager</h4>
+                    <p>Sign Out →</p>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="main-content">
+        <!-- TOP HEADER -->
+        <header class="top-header">
+            <div class="header-left">
+                <h1 id="pageTitle">Operational Dashboard</h1>
+            </div>
+            <div class="header-right">
+                <button class="header-btn" title="Notifications">
+                    <span class="material-symbols-outlined">notifications</span>
+                    <span class="notif-dot"></span>
+                </button>
+                <button class="header-btn" title="Settings">
+                    <span class="material-symbols-outlined">settings</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="page-content">
+
+            <!-- ═══════════════════════════════
+                 PAGE: DASHBOARD
+                 ═══════════════════════════════ -->
+            <div class="page-view active" id="page-dashboard">
+                <!-- Top Metrics -->
+                <div class="grid-4 mb-24" id="dashboardMetrics">
+                    <div class="metric-card">
+                        <div class="metric-label">Baltic Dry Index (BDI)</div>
+                        <div class="metric-value" id="bdiValue">—</div>
+                        <div class="metric-change" id="bdiChange">—</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Active Charters</div>
+                        <div class="metric-value">5</div>
+                        <div class="metric-change up">↑ 2 this month</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">CVC Contracts</div>
+                        <div class="metric-value">55%</div>
+                        <div class="metric-change up">↑ vs. 38% Spot</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Projected Savings</div>
+                        <div class="metric-value">$3.7M</div>
+                        <div class="metric-change up">↑ 12.3% Q3</div>
+                    </div>
+                </div>
+
+                <div class="grid-2-1 mb-24">
+                    <!-- BDI Chart -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><span class="material-symbols-outlined card-icon">show_chart</span> Market at a Glance — BDI (30 Day)</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="bdiChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Risk Alerts -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><span class="material-symbols-outlined card-icon" style="color:var(--warning)">warning</span> Early Warnings</h3>
+                        </div>
+                        <div class="card-body" id="riskAlerts">
+                            <!-- Filled dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-2 mb-24">
+                    <!-- Top Active Routes -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><span class="material-symbols-outlined card-icon">route</span> Top Active Routes</h3>
+                        </div>
+                        <div class="card-body">
+                            <table class="data-table" id="routesTable">
+                                <thead>
+                                    <tr>
+                                        <th>Route</th>
+                                        <th>Rate ($/Ton)</th>
+                                        <th>7-Day Trend</th>
+                                        <th>Change</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="routesBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Upcoming Opportunities -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><span class="material-symbols-outlined card-icon">event_available</span> Upcoming Charter Opportunities</h3>
+                        </div>
+                        <div class="card-body">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Voyage ID</th>
+                                        <th>Route</th>
+                                        <th>Volume (MT)</th>
+                                        <th>Target</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="opportunitiesBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fleet Utilization -->
+                <div class="grid-2 mb-24">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><span class="material-symbols-outlined card-icon">donut_large</span> Fleet by Vessel Type</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-donut">
+                                <canvas id="fleetTypeChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><span class="material-symbols-outlined card-icon">donut_large</span> Fleet by Charter Strategy</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-donut">
+                                <canvas id="fleetCharterChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════
+                 PAGE: FREIGHT FORECAST
+                 ═══════════════════════════════ -->
+            <div class="page-view" id="page-forecast">
+                <div class="grid-sidebar">
+                    <!-- Left: Inputs -->
+                    <div>
+                        <div class="card mb-20">
+                            <div class="card-header">
+                                <h3><span class="material-symbols-outlined card-icon">science</span> Define Forecast Scenario</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <label class="form-label">Origin</label>
+                                    <select class="form-control" id="fcOrigin">
+                                        <option value="Australia_to_EC_India">Australia</option>
+                                        <option value="US_to_EC_India">United States</option>
+                                        <option value="Indonesia_to_EC_India">Indonesia</option>
+                                        <option value="Mozambique_to_EC_India">Mozambique</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Destination Port</label>
+                                    <select class="form-control" id="fcDestination">
+                                        <option value="Paradip">Paradip</option>
+                                        <option value="Vizag">Vizag</option>
+                                        <option value="Haldia">Haldia</option>
+                                        <option value="Dhamra">Dhamra</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Cargo Volume (MT): <strong id="fcVolumeLabel">150,000</strong></label>
+                                    <input type="range" class="form-range" id="fcVolume" min="10000" max="500000" step="10000" value="150000" oninput="document.getElementById('fcVolumeLabel').textContent=parseInt(this.value).toLocaleString()">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Analysis Start Date</label>
+                                    <input type="date" class="form-control" id="fcStartDate">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Forecast Horizon: <strong id="fcDaysLabel">60</strong> days</label>
+                                    <input type="range" class="form-range" id="fcDays" min="14" max="90" value="60" oninput="document.getElementById('fcDaysLabel').textContent=this.value">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Contract Type Preference</label>
+                                    <div class="segmented-control" id="fcContractType">
+                                        <button type="button" class="segmented-option" data-val="Spot" onclick="selectSegment(this)">Spot</button>
+                                        <button type="button" class="segmented-option active" data-val="CVC" onclick="selectSegment(this)">CVC</button>
+                                        <button type="button" class="segmented-option" data-val="Time Charter" onclick="selectSegment(this)">Time Charter</button>
+                                    </div>
+                                </div>
+
+                                <details style="margin-bottom:16px">
+                                    <summary style="cursor:pointer;font-size:0.82rem;font-weight:600;color:var(--teal);margin-bottom:12px">⚙️ Advanced Factors</summary>
+                                    <div class="form-group">
+                                        <label class="form-label">Bunker Fuel Price ($/Ton): <strong id="fcBunkerLabel">450</strong></label>
+                                        <input type="range" class="form-range" id="fcBunker" min="300" max="800" value="450" oninput="document.getElementById('fcBunkerLabel').textContent=this.value">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Port Congestion (Days): <strong id="fcCongestionLabel">2</strong></label>
+                                        <input type="range" class="form-range" id="fcCongestion" min="0" max="15" value="2" oninput="document.getElementById('fcCongestionLabel').textContent=this.value">
+                                    </div>
+                                </details>
+
+                                <button class="btn btn-teal btn-lg w-full" onclick="runForecast()" id="forecastBtn">
+                                    <span class="material-symbols-outlined">auto_awesome</span>
+                                    Generate AI Forecast
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Results -->
+                    <div>
+                        <!-- Signal Cards -->
+                        <div class="grid-3 mb-20" id="forecastSignals" style="display:none">
+                            <div class="card signal-card" id="signalCard">
+                                <div class="signal-icon" id="signalIcon">📊</div>
+                                <div class="signal-label" id="signalLabel">—</div>
+                                <div class="signal-reason" id="signalReason">Run a forecast to see market entry recommendation</div>
+                            </div>
+                            <div class="card signal-card">
+                                <div style="font-size:0.75rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Current Rate</div>
+                                <div style="font-size:1.6rem;font-weight:800;color:var(--navy)" id="currentRateDisplay">—</div>
+                                <div style="font-size:0.82rem;color:var(--text-secondary);margin-top:4px">$/Ton Today</div>
+                            </div>
+                            <div class="card signal-card">
+                                <div style="font-size:0.75rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Lowest Projected</div>
+                                <div style="font-size:1.6rem;font-weight:800;color:var(--success)" id="lowestRateDisplay">—</div>
+                                <div style="font-size:0.82rem;color:var(--text-secondary);margin-top:4px" id="bestDateDisplay">Optimal Date</div>
+                            </div>
+                        </div>
+
+                        <!-- Forecast Chart -->
+                        <div class="card mb-20" id="forecastChartCard" style="display:none">
+                            <div class="card-header">
+                                <h3><span class="material-symbols-outlined card-icon">insights</span> Freight Rate Forecast ($/Ton)</h3>
+                                <button class="btn btn-outline btn-sm" onclick="saveForecastReport()">
+                                    <span class="material-symbols-outlined" style="font-size:16px">save</span> Save Report
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="forecastChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Confidence -->
+                        <div class="card" id="confidenceCard" style="display:none">
+                            <div class="card-header">
+                                <h3><span class="material-symbols-outlined card-icon">verified</span> Forecast Confidence</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex align-center justify-between mb-12">
+                                    <span class="badge badge-success"><span class="badge-dot"></span> High Confidence — 90% Band</span>
+                                    <span style="font-size:0.82rem;color:var(--text-secondary)">XGBoost Model (300 estimators, depth=6)</span>
+                                </div>
+                                <div class="chart-container chart-small">
+                                    <canvas id="confidenceChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Empty State -->
+                        <div class="card" id="forecastEmpty">
+                            <div class="card-body" style="text-align:center;padding:60px 40px">
+                                <span class="material-symbols-outlined" style="font-size:64px;color:var(--steel-light);margin-bottom:16px">query_stats</span>
+                                <h3 style="color:var(--navy);margin-bottom:8px">Ready to Forecast</h3>
+                                <p style="color:var(--text-secondary);max-width:400px;margin:0 auto">Configure your scenario parameters on the left and click <strong>Generate AI Forecast</strong> to see real-time XGBoost predictions across all vessel types.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════
+                 PAGE: VESSEL OPTIMIZER
+                 ═══════════════════════════════ -->
+            <div class="page-view" id="page-optimizer">
+                <!-- Inputs -->
+                <div class="card mb-24">
+                    <div class="card-header">
+                        <h3><span class="material-symbols-outlined card-icon">tune</span> Charter Requirements</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="grid-4">
+                            <div class="form-group mb-0">
+                                <label class="form-label">Trade Route</label>
+                                <select class="form-control" id="optRoute">
+                                    <option value="Australia_to_EC_India">Australia → EC India</option>
+                                    <option value="US_to_EC_India">US → EC India</option>
+                                    <option value="Indonesia_to_EC_India">Indonesia → EC India</option>
+                                    <option value="Mozambique_to_EC_India">Mozambique → EC India</option>
+                                </select>
+                            </div>
+                            <div class="form-group mb-0">
+                                <label class="form-label">Cargo Volume (MT)</label>
+                                <input type="number" class="form-control" id="optVolume" value="150000" min="10000" max="1000000" step="10000">
+                            </div>
+                            <div class="form-group mb-0">
+                                <label class="form-label">Destination Port</label>
+                                <select class="form-control" id="optPort">
+                                    <option value="Paradip">Paradip</option>
+                                    <option value="Vizag">Vizag</option>
+                                    <option value="Haldia">Haldia</option>
+                                    <option value="Dhamra">Dhamra</option>
+                                </select>
+                            </div>
+                            <div class="form-group mb-0" style="display:flex;align-items:flex-end">
+                                <button class="btn btn-teal w-full" onclick="runOptimizer()">
+                                    <span class="material-symbols-outlined" style="font-size:18px">calculate</span>
+                                    Calculate Optimal Vessel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results -->
+                <div class="grid-2-1 mb-24" id="optimizerResults" style="display:none">
+                    <!-- Comparison Table -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><span class="material-symbols-outlined card-icon">comparison</span> Comparative Vessel Analysis</h3>
+                        </div>
+                        <div class="card-body">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Vessel Type</th>
+                                        <th>Capacity (MT)</th>
+                                        <th>Draft (m)</th>
+                                        <th>LOA (m)</th>
+                                        <th>Voyages</th>
+                                        <th>Rate/Ton ($)</th>
+                                        <th>Est. Cost ($)</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="optimizerTable"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- AI Recommendation -->
+                    <div id="aiRecommendation"></div>
+                </div>
+
+                <!-- Default Info -->
+                <div class="card" id="optimizerEmpty">
+                    <div class="card-body" style="text-align:center;padding:60px 40px">
+                        <span class="material-symbols-outlined" style="font-size:64px;color:var(--steel-light);margin-bottom:16px">directions_boat</span>
+                        <h3 style="color:var(--navy);margin-bottom:8px">Vessel Optimization Engine</h3>
+                        <p style="color:var(--text-secondary);max-width:500px;margin:0 auto">Select your cargo requirements and destination port above. The optimizer will analyze port draft/LOA constraints, calculate voyages needed per vessel type, and recommend the most cost-effective charter strategy.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════
+                 PAGE: ACTIVE CHARTERS
+                 ═══════════════════════════════ -->
+            <div class="page-view" id="page-charters">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab('charterVoyages', this)">Active Voyages</button>
+                    <button class="tab-btn" onclick="switchTab('charterMap', this)">Fleet Map</button>
+                </div>
+
+                <!-- Active Voyages Tab -->
+                <div class="tab-content active" id="tab-charterVoyages">
+                    <div class="d-flex align-center justify-between mb-20">
+                        <div>
+                            <h3 style="font-size:1.05rem;font-weight:700;color:var(--navy)">Contract Portfolio</h3>
+                            <p style="font-size:0.82rem;color:var(--text-secondary)">Managing active voyages and CVC contracts</p>
+                        </div>
+                        <button class="btn btn-teal btn-sm" onclick="showAddCharterHint()">
+                            <span class="material-symbols-outlined" style="font-size:16px">add</span> New Charter
+                        </button>
+                    </div>
+
+                    <div id="chartersList" class="grid-2 mb-24">
+                        <!-- Filled dynamically -->
+                    </div>
+                </div>
+
+                <!-- Map Tab -->
+                <div class="tab-content" id="tab-charterMap">
+                    <div class="map-placeholder">
+                        <div class="map-ships">
+                            <div class="map-ship" title="MV Sagar Pragati — En-Route to Paradip">🚢</div>
+                            <div class="map-ship" title="MV Steel Voyager — Loading at Richards Bay">⚓</div>
+                            <div class="map-ship" title="MV Eastern Glory — Discharging at Vizag">🚢</div>
+                            <div class="map-ship" title="MV Bharat Shakti — Awaiting Berth at Haldia">⏳</div>
+                        </div>
+                        <div class="map-label">🗺️ Fleet Tracking — Indian Ocean & East Coast India</div>
+                        <div class="map-sublabel">Live vessel positions across major SAIL procurement routes</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════
+                 PAGE: MARKET INSIGHTS
+                 ═══════════════════════════════ -->
+            <div class="page-view" id="page-insights">
+                <!-- Savings Card -->
+                <div class="card mb-24">
+                    <div class="card-header">
+                        <h3><span class="material-symbols-outlined card-icon" style="color:var(--success)">savings</span> Freight Cost Savings — CVC vs Spot Strategy</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="savingsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-2 mb-24">
+                    <!-- Port Congestion -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><span class="material-symbols-outlined card-icon">anchor</span> Port Congestion Trends (6 Months)</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="congestionChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Idle Time -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><span class="material-symbols-outlined card-icon">hourglass_empty</span> Vessel Idle Time Analysis</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="idleTimeChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- What-If Simulator -->
+                <div class="card mb-24">
+                    <div class="card-header">
+                        <h3><span class="material-symbols-outlined card-icon">science</span> Charter Strategy Simulator — What-If Analysis</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="grid-2" id="whatifDisplay">
+                            <!-- Filled dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════
+                 PAGE: REPORTS
+                 ═══════════════════════════════ -->
+            <div class="page-view" id="page-reports">
+                <div class="d-flex align-center justify-between mb-24">
+                    <div>
+                        <h3 style="font-size:1.15rem;font-weight:700;color:var(--navy)">Saved Reports & Analysis History</h3>
+                        <p style="font-size:0.85rem;color:var(--text-secondary)">Forecasts, optimization results, and scenario comparisons</p>
+                    </div>
+                </div>
+
+                <div id="reportsList">
+                    <!-- Filled dynamically -->
+                </div>
+            </div>
+
+        </div> <!-- /page-content -->
+    </main>
+</div> <!-- /app-layout -->
+
+<script src="/app.js"></script>
+</body>
+</html>
